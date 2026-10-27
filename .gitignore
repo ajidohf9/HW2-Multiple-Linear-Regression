@@ -1,0 +1,12 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large dataset files
+train.csv
+
+# Temporary logs & test outputs
+*.log
+*.tmp
+rendered_dom.html

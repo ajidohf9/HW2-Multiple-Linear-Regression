@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HW2 多元線性回歸分析系統 | CRISP-DM 互動式分析平台</title>
+  <meta name="description" content="國立中興大學巨量資料分析作業 HW2：多元線性回歸 (Multiple Linear Regression) 互動式分析平台。遵循 CRISP-DM 流程，具備特徵選擇、五大假設檢定、信賴與預測區間圖，以及任意資料集載入功能。">
+  
+  <!-- Google Fonts & CDN Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js & PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar" id="app-navbar">
+    <div class="nav-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">ML-Studio <span class="brand-badge">HW2</span></h1>
+          <p class="brand-subtitle">多元線性回歸 (Multiple Linear Regression) 分析平台</p>
+        </div>
+      </div>
+
+      <div class="nav-meta">
+        <div class="badge-student">
+          <span class="pulse-dot"></span>
+          <span>國立中興大學 | 學號: <strong>7115093066</strong></span>
+        </div>
+        <div class="nav-links">
+          <a href="7115093066_hw2_report.pdf" target="_blank" class="nav-btn" id="btn-view-pdf">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            完整報告 PDF
+          </a>
+          <a href="7115093066_gpt_record.pdf" target="_blank" class="nav-btn" id="btn-view-gpt">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            GPT 對話存檔
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Hero / Control Center (加分項目 1 分 & 2 分 核心控制區) -->
+    <section class="control-center glass-panel" id="control-section">
+      <div class="section-badge">
+        <span class="badge-icon">⚡</span>
+        <span>加分核心功能：多題型切換 & 任意資料集動態匯入</span>
+      </div>
+
+      <div class="control-grid">
+        <!-- Problem Selector (加分 1 分) -->
+        <div class="control-card">
+          <label class="control-label" for="problem-selector">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            【加分 1 分】下拉視窗切換 Problem:
+          </label>
+          <div class="select-wrapper">
+            <select id="problem-selector" class="styled-select">
+              <option value="flood">🌟 Problem 1: 洪水機率預測 (Kaggle S4E5 - 20 項環境工程特徵)</option>
+              <option value="startups">🌟 Problem 2: 50 創業公司利潤預測 (50_Startups - 講義指定範例)</option>
+              <option value="custom">🌐 Problem 3: 自訂資料集 (Custom Dataset from URL / CSV)</option>
+            </select>
+          </div>
+          <p class="control-hint">切換下拉選單即可即時載入不同領域的回歸分析任務與資料集。</p>
+        </div>
+
+        <!-- Custom Dataset Input (加分 2 分) -->
+        <div class="control-card highlight-card">
+          <label class="control-label" for="dataset-url-input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            【加分 2 分】可任意輸入 Dataset URL:
+          </label>
+          <div class="input-action-group">
+            <input type="text" id="dataset-url-input" class="styled-input" 
+                   value="https://raw.githubusercontent.com/Avik-Jain/100-Days-Of-ML-Code/master/datasets/50_Startups.csv" 
+                   placeholder="輸入任一公開 CSV 資料集之 URL 網址...">
+            <button id="btn-load-url" class="btn btn-primary">
+              <span class="btn-spinner" id="url-spinner"></span>
+              <span>載入並分析</span>
+            </button>
+          </div>
+          <div class="file-upload-row">
+            <span class="text-muted">或自電腦上傳 CSV：</span>
+            <label class="file-upload-label" for="csv-file-input">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>選擇本地 CSV 檔案</span>
+              <input type="file" id="csv-file-input" accept=".csv">
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CRISP-DM Workflow Navigation Tabs -->
+    <nav class="crisp-nav" id="crisp-tabs">
+      <button class="crisp-tab active" data-step="1">1. Business Understanding</button>
+      <button class="crisp-tab" data-step="2">2. Data Understanding</button>
+      <button class="crisp-tab" data-step="3">3. Data Preparation</button>
+      <button class="crisp-tab" data-step="4">4. Modeling</button>
+      <button class="crisp-tab" data-step="5">5. Evaluation</button>
+      <button class="crisp-tab" data-step="6">6. Deployment</button>
+    </nav>
+
+    <!-- Status / Notification Bar -->
+    <div id="status-notification" class="notification-bar">
+      <span class="status-icon" id="status-icon">ℹ️</span>
+      <span class="status-text" id="status-text">就緒：請選擇上方 Problem 或直接載入自訂資料集進行分析。</span>
+    </div>
+
+    <!-- Data Summary & Feature Selection Configuration -->
+    <section class="dashboard-grid">
+      
+      <!-- Left: Data Configuration & Feature Selection -->
+      <div class="glass-panel card-col" id="data-config-panel">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+            資料配置與特徵選擇 (Feature Selection)
+          </h2>
+          <span class="badge" id="sample-count-badge">樣本數: 0 筆</span>
+        </div>
+
+        <!-- Target Selector -->
+        <div class="form-group">
+          <label class="form-label" for="target-selector">預測目標欄位 (Target Variable $y$):</label>
+          <select id="target-selector" class="styled-select"></select>
+        </div>
+
+        <!-- Feature Selection Mode -->
+        <div class="form-group">
+          <label class="form-label">特徵選擇策略 (Feature Selection Strategy):</label>
+          <div class="btn-group-toggle">
+            <button class="toggle-btn active" id="btn-select-all" data-mode="all">全特徵 (Full)</button>
+            <button class="toggle-btn" id="btn-select-kbest" data-mode="kbest">Top K 特徵 (SelectKBest)</button>
+            <button class="toggle-btn" id="btn-select-rfe" data-mode="rfe">RFE 遞迴特徵消除</button>
+          </div>
+        </div>
+
+        <!-- K features slider -->
+        <div class="form-group" id="k-slider-group" style="display: none;">
+          <div class="slider-header">
+            <label for="k-slider">保留特徵數量 (k): <strong id="k-val-display">14</strong> 項</label>
+          </div>
+          <input type="range" id="k-slider" class="styled-slider" min="1" max="20" value="14">
+        </div>
+
+        <!-- Features Checklist -->
+        <div class="form-group">
+          <div class="feature-checklist-header">
+            <label>輸入特徵勾選清單 (Features $X$):</label>
+            <div class="quick-actions">
+              <a href="javascript:void(0)" id="action-select-all">全選</a>
+              <span>|</span>
+              <a href="javascript:void(0)" id="action-deselect-all">反選</a>
+            </div>
+          </div>
+          <div class="features-checklist-box" id="features-container">
+            <!-- Dynamic checkboxes injected here -->
+          </div>
+        </div>
+
+        <button id="btn-re-train" class="btn btn-success btn-block">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          重新訓練模型並更新分析
+        </button>
+      </div>
+
+      <!-- Right: Model Evaluation Metrics Overview -->
+      <div class="glass-panel card-col" id="metrics-panel">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+            多元線性回歸模型評估指標 (Model Evaluation)
+          </h2>
+          <span class="badge badge-success" id="model-status-badge">OLS Model: Ready</span>
+        </div>
+
+        <!-- 6 Metrics Cards Grid -->
+        <div class="metrics-cards-grid">
+          <div class="metric-card metric-primary">
+            <div class="metric-title">決定係數 (R²)</div>
+            <div class="metric-value" id="val-r2">--</div>
+            <div class="metric-sub" id="sub-r2">衡量自變數解釋變異之比例</div>
+          </div>
+
+          <div class="metric-card metric-primary">
+            <div class="metric-title">校正決定係數 (Adjusted R²)</div>
+            <div class="metric-value" id="val-adj-r2">--</div>
+            <div class="metric-sub" id="sub-adj-r2">懲罰過多不顯著特徵</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-title">均方根誤差 (RMSE)</div>
+            <div class="metric-value" id="val-rmse">--</div>
+            <div class="metric-sub">與目標變數相同尺度之誤差</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-title">平均絕對誤差 (MAE)</div>
+            <div class="metric-value" id="val-mae">--</div>
+            <div class="metric-sub">實際值與預測值之絕對偏差平均</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-title">F 檢定量 (F-statistic)</div>
+            <div class="metric-value" id="val-fstat">--</div>
+            <div class="metric-sub" id="sub-fstat">模型整體統計顯著性檢定</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-title">Durbin-Watson 統計量</div>
+            <div class="metric-value" id="val-dw">--</div>
+            <div class="metric-sub" id="sub-dw">誤差獨立性檢驗 (接近 2 為理想)</div>
+          </div>
+        </div>
+
+        <!-- Regression Formula Box -->
+        <div class="formula-card">
+          <div class="formula-label">回歸方程式 (Estimated Multiple Regression Equation):</div>
+          <div class="formula-content" id="formula-display">
+            正在計算方程式...
+          </div>
+        </div>
+
+        <!-- Assumptions Checklist -->
+        <div class="assumptions-status-box">
+          <div class="assumptions-title">五大回歸假設檢驗診斷狀態：</div>
+          <div class="assumptions-tags">
+            <span class="tag-pill tag-pass" id="tag-linearity">✓ 線性關係 (Linearity)</span>
+            <span class="tag-pill tag-pass" id="tag-normality">✓ 殘差常態性 (Normality)</span>
+            <span class="tag-pill tag-pass" id="tag-homoscedasticity">✓ 同質變異性 (Homoscedasticity)</span>
+            <span class="tag-pill tag-pass" id="tag-independence">✓ 誤差獨立性 (DW ≈ 2.0)</span>
+            <span class="tag-pill tag-pass" id="tag-vif">✓ 無多重共線性 (VIF < 5)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Visualizations Dashboard -->
+    <section class="glass-panel" id="charts-section">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          互動式統計視覺化儀表板 (Visualization Dashboard)
+        </h2>
+
+        <!-- Visualization Tabs -->
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-chart="prediction">預測圖 (含 95% 信賴與預測區間)</button>
+          <button class="chart-tab" data-chart="coefficients">標準化回歸係數 (Feature Importance)</button>
+          <button class="chart-tab" data-chart="residuals">殘差 vs 擬合值 (LOWESS)</button>
+          <button class="chart-tab" data-chart="qqplot">常態 Q-Q Plot</button>
+        </div>
+      </div>
+
+      <!-- Chart Display Area -->
+      <div class="chart-container-box">
+        <canvas id="main-interactive-chart"></canvas>
+      </div>
+
+      <div class="chart-legend-explain" id="chart-explain-text">
+        <strong>圖表解讀：</strong>藍色散點為測試集樣本觀測值，紅色實線為回歸模型預測值，橙色帶為 95% 母體平均值信賴區間 (CI)，淺藍色帶為 95% 個別樣本預測區間 (PI)。
+      </div>
+    </section>
+
+    <!-- Regression Summary Table -->
+    <section class="glass-panel" id="coefficients-table-section">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          回歸係數詳細統計檢定表 (OLS Regression Estimates Table)
+        </h2>
+        <span class="badge" id="dof-badge">自由度 Df: --</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="styled-table" id="summary-stats-table">
+          <thead>
+            <tr>
+              <th>變數名稱 (Variable)</th>
+              <th>回歸係數 (β)</th>
+              <th>標準誤 (Std. Error)</th>
+              <th>t 統計量 (t-stat)</th>
+              <th>p 值 (P>|t|)</th>
+              <th>95% 信賴區間下界</th>
+              <th>95% 信賴區間上界</th>
+              <th>共線性 (VIF)</th>
+            </tr>
+          </thead>
+          <tbody id="summary-table-body">
+            <tr><td colspan="8" class="text-center">正在運算中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Deployment / Live Prediction Simulator (CRISP-DM 6: Deployment) -->
+    <section class="glass-panel" id="deployment-section">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+          CRISP-DM 部署推論模擬器 (Live Deployment & Inference Simulator)
+        </h2>
+        <span class="badge badge-accent">即時互動推論</span>
+      </div>
+
+      <p class="section-desc">拖動下方滑桿調節各特徵之數值，系統將即時計算模型預測值並輸出相應的決策與風險評級：</p>
+
+      <div class="deployment-container">
+        <!-- Live Sliders Form -->
+        <div class="sliders-grid" id="simulator-inputs-container">
+          <!-- Dynamically generated sliders -->
+        </div>
+
+        <!-- Live Prediction Output Card -->
+        <div class="prediction-result-card" id="prediction-result-box">
+          <div class="prediction-header">即時預測輸出 (Real-time Prediction)</div>
+          <div class="prediction-target-name" id="pred-target-label">預測洪水機率 (FloodProbability)</div>
+          <div class="prediction-number" id="pred-output-val">0.5043</div>
+          <div class="prediction-alert-badge" id="pred-alert-badge">
+            <span id="alert-badge-text">🟡 三級黃色戒備 (中度風險)</span>
+          </div>
+          <div class="prediction-ci-range" id="pred-ci-range">
+            95% 信賴區間: [0.5041, 0.5045]
+          </div>
+          <div class="prediction-pi-range" id="pred-pi-range">
+            95% 預測區間: [0.4651, 0.5435]
+          </div>
+          <button id="btn-reset-simulator" class="btn btn-secondary btn-sm" style="margin-top: 15px;">重設特徵為平均值</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CRISP-DM & AI Assistance Details -->
+    <section class="glass-panel" id="about-section">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          CRISP-DM 流程說明與 AI 協助研究摘要 (作業規範必備)
+        </h2>
+      </div>
+
+      <div class="crisp-cards-grid">
+        <div class="crisp-card">
+          <h3>1. Business Understanding (商業理解)</h3>
+          <p>定義連續數值預測目標，量化各項防洪工程（水壩、排水設施、河川治理）與環境脆弱因子之邊際貢獻，提供政府應急調度與產險定價之客觀基準。</p>
+        </div>
+
+        <div class="crisp-card">
+          <h3>2. Data Understanding (資料理解)</h3>
+          <p>Kaggle 官方 Flood Prediction 資料集具備 20 項數值特徵，0 缺失值，母體呈高度對稱常態鐘形分佈，特徵彼此獨立無共線性。</p>
+        </div>
+
+        <div class="crisp-card">
+          <h3>3. Data Preparation (資料準備)</h3>
+          <p>80/20 訓練/測試切分，嚴格防範資料外洩，採用 Z-score StandardScaler 標準化特徵，確保回歸係數具備直接可比性。</p>
+        </div>
+
+        <div class="crisp-card">
+          <h3>4. Modeling (建模與特徵選擇)</h3>
+          <p>OLS 多元線性回歸基準模型（R² = 0.8496）、Ridge/Lasso 交叉驗證超參數優化，並實作 SelectKBest 與 RFE 遞迴特徵消除（14 特徵）之對比分析。</p>
+        </div>
+
+        <div class="crisp-card">
+          <h3>5. Evaluation (模型評估)</h3>
+          <p>計算 MAE, MSE, RMSE, R², Adjusted R²；驗證五大統計假設（LOWESS 平滑殘差線、Q-Q Plot、Scale-Location、DW = 2.0188、平均 VIF = 1.0030），繪製 95% CI 與 PI 預測圖。</p>
+        </div>
+
+        <div class="crisp-card">
+          <h3>6. Deployment (部署應用)</h3>
+          <p>以純前端 Client-Side 方式封裝推論引擎，即時輸出各情境預測值與四級水患預警體系，支援 GitHub Pages 一鍵公開部署。</p>
+        </div>
+      </div>
+
+      <!-- AI Callouts -->
+      <div class="ai-callouts-grid">
+        <div class="ai-box nlm-box">
+          <div class="ai-title">📘【NotebookLM 研究摘要】(符合 100 字以上規範，全文 328 字)</div>
+          <p>本研究藉由 Google NotebookLM 匯入 Kaggle Playground Series s4e5（Flood Prediction）競賽官方討論區、多篇頂尖參賽者獲獎開源 Notebook 及相關水文統計學期刊文獻，進行跨文件之深入研討與主題摘要。研究指出，該合成水文資料集具備對稱、平衡之線性加成結構，使得標準 OLS 多元線性回歸在基準狀態下即可展現高達 0.844 之優異決定係數（R²），且殘差完全通過 Durbin-Watson 獨立性（2.019）與極低變異膨脹因子（VIF 約 1.003）之統計檢驗。相較於競賽主流採用之 LightGBM、CatBoost 與 XGBoost 梯度提升決策樹集成方案（R² 約 0.869），線性回歸模型在推論時延（微秒級）、運算開銷（無須高階 GPU）以及最重要的「政策白箱可解釋性」上具備壓倒性優勢，能清楚提供各項環境工程權重與 95% 信賴及預測區間，極適合作為即時防汛指揮應變系統之核心推論引擎。</p>
+        </div>
+
+        <div class="ai-box gpt-box">
+          <div class="ai-title">🤖【GPT 輔助內容說明】</div>
+          <p>本專案在 CRISP-DM 流程規劃、特徵選擇方法（SelectKBest vs RFE）、五大線性回歸假設檢驗（LOWESS 殘差檢驗、Jarque-Bera 常態性檢定、Breusch-Pagan 同質變異檢定、Durbin-Watson 獨立性檢定、VIF 共線性檢定）以及信賴區間與預測區間之計量矩陣推導過程中，獲得 ChatGPT 之輔助諮詢。所有對話互動紀錄已完整匯出為官方樣式 PDF（<code>7115093066_gpt_record.pdf</code>）存檔附錄。</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>國立中興大學 | 巨量資料分析與機器學習作業 HW2: Multiple Linear Regression</p>
+      <p class="footer-sub">學生學號: <strong>7115093066</strong> | 支援 GitHub Pages 靜態網頁快速發布</p>
+    </div>
+  </footer>
+
+  <!-- Custom JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
