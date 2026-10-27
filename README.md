@@ -3,6 +3,8 @@
 
 - **學生學號**：7115093066
 - **課程名稱**：國立中興大學 巨量資料分析與機器學習
+- **GitHub 倉庫**：[https://github.com/ajidohf9/HW2-Multiple-Linear-Regression](https://github.com/ajidohf9/HW2-Multiple-Linear-Regression)
+- **Web 成果網址 (GitHub Pages)**：[https://ajidohf9.github.io/HW2-Multiple-Linear-Regression/](https://ajidohf9.github.io/HW2-Multiple-Linear-Regression/)
 - **資料集來源**：
   - **Problem 1 (主要問題)**：[Kaggle Playground Series (Season 4, Episode 5) - Flood Prediction Dataset](https://www.kaggle.com/competitions/playground-series-s4e5)（20 項環境工程數值特徵）
   - **Problem 2 (講義問題)**：[50 Startups Dataset](https://raw.githubusercontent.com/Avik-Jain/100-Days-Of-ML-Code/master/datasets/50_Startups.csv)（3 項研發、管理、行銷特徵預測利潤）
